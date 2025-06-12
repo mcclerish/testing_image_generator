@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Imagen Prompt Generator</title>
+    <style>
+        :root {
+            --primary: #4285f4;
+            --secondary: #34a853;
+            --warning: #fbbc05;
+            --danger: #ea4335;
+            --dark: #202124;
+            --light: #f8f9fa;
+            --gray: #dadce0;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), #1a73e8);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--gray);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        input[type="text"],
+        input[type="file"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--gray);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+        }
+        
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .toggle-label {
+            margin-right: 15px;
+            font-weight: 600;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+            color: var(--dark);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-container {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: var(--light);
+            border: 1px solid var(--gray);
+        }
+        
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        
+        .enhanced-prompt {
+            background-color: #e8f0fe;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--dark);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .image-preview {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-height: 300px;
+        }
+        
+        .image-placeholder {
+            width: 100%;
+            height: 200px;
+            background-color: var(--light);
+            border: 2px dashed var(--gray);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #5f6368;
+            font-size: 16px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #5f6368;
+            font-size: 14px;
+        }
+        
+        .api-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        
+        .status-valid {
+            background-color: #e6f4ea;
+            color: var(--secondary);
+        }
+        
+        .status-invalid {
+            background-color: #fce8e6;
+            color: var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Google Imagen Prompt Generator</h1>
+        <p>Buat prompt untuk Google Imagen dengan fitur canggih</p>
+    </header>
+    
+    <div class="container">
+        <!-- Panel Kiri: Input Pengguna -->
+        <div class="card">
+            <h2>Konfigurasi Prompt</h2>
+            
+            <div class="form-group">
+                <label for="api-key">API Key Google Imagen:</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="api-key" placeholder="Masukkan API key Anda">
+                    <button class="btn-primary" id="check-api">Cek</button>
+                </div>
+                <div id="api-status" class="api-status"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="image-upload">Unggah Gambar (Image to Image):</label>
+                <input type="file" id="image-upload" accept="image/*">
+                <div class="image-preview">
+                    <div class="image-placeholder">Pratinjau gambar akan muncul di sini</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <div class="toggle-container">
+                    <span class="toggle-label">ControlNet IP Adapter:</span>
+                    <label class="switch">
+                        <input type="checkbox" id="controlnet-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="toggle-container">
+                    <span class="toggle-label">Faceswap:</span>
+                    <label class="switch">
+                        <input type="checkbox" id="faceswap-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="prompt">Prompt Anda:</label>
+                <textarea id="prompt" placeholder="Masukkan deskripsi gambar yang Anda inginkan..."></textarea>
+            </div>
+            
+            <button class="btn-warning" id="enhance-btn">Enhance Prompt</button>
+        </div>
+        
+        <!-- Panel Kanan: Hasil dan Tindakan -->
+        <div class="card">
+            <h2>Hasil & Tindakan</h2>
+            
+            <div class="result-container" id="enhanced-result" style="display: none;">
+                <div class="result-title">Prompt yang Diperbaiki:</div>
+                <div class="enhanced-prompt" id="enhanced-prompt"></div>
+                
+                <div class="result-title">Pilih Prompt untuk Dikirim:</div>
+                <div class="button-group">
+                    <button class="btn-primary" id="submit-original">Kirim Original</button>
+                    <button class="btn-secondary" id="submit-enhanced">Kirim Enhanced</button>
+                </div>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Memproses permintaan Anda...</p>
+            </div>
+            
+            <div class="result-container" id="generation-result" style="display: none;">
+                <div class="result-title">Hasil Generasi Gambar:</div>
+                <div class="image-preview">
+                    <div class="image-placeholder">Gambar hasil akan muncul di sini</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" id="download-btn">Unduh Gambar</button>
+                    <button class="btn-secondary" id="new-request">Permintaan Baru</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="api-modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Status API Key</h2>
+            <p id="modal-message"></p>
+            <button class="btn-primary" id="modal-close">Tutup</button>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Aplikasi Google Imagen Prompt Generator &copy; 2023 | Dibuat untuk GitHub Pages</p>
+    </footer>
+    
+    <script>
+        // Simulasi API key validation
+        document.getElementById('check-api').addEventListener('click', function() {
+            const apiKey = document.getElementById('api-key').value;
+            const apiStatus = document.getElementById('api-status');
+            const modal = document.getElementById('api-modal');
+            const modalMessage = document.getElementById('modal-message');
+            
+            if (!apiKey) {
+                apiStatus.textContent = 'Silakan masukkan API key';
+                apiStatus.className = 'api-status status-invalid';
+                modalMessage.textContent = 'API key tidak boleh kosong!';
+                modal.style.display = 'flex';
+                return;
+            }
+            
+            // Simulasi validasi API key (dalam implementasi nyata, ini akan memanggil API Google)
+            setTimeout(() => {
+                if (apiKey.length > 10 && apiKey.includes('_')) {
+                    apiStatus.textContent = 'API key valid';
+                    apiStatus.className = 'api-status status-valid';
+                    modalMessage.textContent = 'API key Anda valid dan siap digunakan!';
+                } else {
+                    apiStatus.textContent = 'API key tidak valid';
+                    apiStatus.className = 'api-status status-invalid';
+                    modalMessage.textContent = 'API key tidak valid. Silakan periksa dan coba lagi.';
+                }
+                modal.style.display = 'flex';
+            }, 1000);
+        });
+        
+        // Enhance prompt algorithm
+        document.getElementById('enhance-btn').addEventListener('click', function() {
+            const originalPrompt = document.getElementById('prompt').value;
+            
+            if (!originalPrompt) {
+                alert('Silakan masukkan prompt terlebih dahulu!');
+                return;
+            }
+            
+            // Algoritma sederhana untuk meningkatkan prompt
+            const enhanced = enhancePrompt(originalPrompt);
+            
+            document.getElementById('enhanced-prompt').textContent = enhanced;
+            document.getElementById('enhanced-result').style.display = 'block';
+        });
+        
+        function enhancePrompt(prompt) {
+            // Tambahkan kata kunci yang umum digunakan untuk meningkatkan kualitas gambar
+            const enhancements = [
+                "high quality", "high resolution", "detailed", "sharp focus", 
+                "professional photography", "cinematic lighting", "8k", 
+                "trending on artstation", "unreal engine", "octane render"
+            ];
+            
+            // Tambahkan kata kunci berdasarkan konten prompt
+            if (prompt.toLowerCase().includes("portrait") || prompt.toLowerCase().includes("face")) {
+                enhancements.push("detailed facial features", "professional portrait lighting");
+            }
+            
+            if (prompt.toLowerCase().includes("landscape")) {
+                enhancements.push("atmospheric perspective", "dramatic sky", "detailed environment");
+            }
+            
+            // Gabungkan prompt asli dengan enhancements
+            return `${prompt}, ${enhancements.join(', ')}`;
+        }
+        
+        // Submit prompt
+        document.getElementById('submit-original').addEventListener('click', function() {
+            submitPrompt(document.getElementById('prompt').value);
+        });
+        
+        document.getElementById('submit-enhanced').addEventListener('click', function() {
+            submitPrompt(document.getElementById('enhanced-prompt').textContent);
+        });
+        
+        function submitPrompt(prompt) {
+            const loading = document.getElementById('loading');
+            const resultContainer = document.getElementById('generation-result');
+            const enhancedResult = document.getElementById('enhanced-result');
+            const controlnet = document.getElementById('controlnet-toggle').checked;
+            const faceswap = document.getElementById('faceswap-toggle').checked;
+            
+            // Validasi
+            if (!document.getElementById('api-key').value) {
+                alert('Silakan masukkan API key terlebih dahulu!');
+                return;
+            }
+            
+            // Tampilkan loading
+            loading.style.display = 'block';
+            enhancedResult.style.display = 'none';
+            
+            // Simulasi proses generasi gambar
+            setTimeout(() => {
+                loading.style.display = 'none';
+                resultContainer.style.display = 'block';
+                
+                // Tampilkan status fitur
+                let features = [];
+                if (controlnet) features.push('ControlNet IP Adapter');
+                if (faceswap) features.push('Faceswap');
+                
+                const featuresText = features.length > 0 
+                    ? ` (dengan fitur: ${features.join(', ')})` 
+                    : '';
+                
+                // Tambahkan gambar placeholder hasil
+                const imagePreview = resultContainer.querySelector('.image-preview');
+                imagePreview.innerHTML = `
+                    <img src="https://via.placeholder.com/600x400/4285F4/FFFFFF?text=Gambar+Hasil+Generasi${encodeURIComponent(featuresText)}" alt="Generated image">
+                    <p>Prompt: ${prompt.substring(0, 100)}${prompt.length > 100 ? '...' : ''}</p>
+                `;
+            }, 3000);
+        }
+        
+        // Image preview
+        document.getElementById('image-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const preview = document.querySelector('.image-preview');
+                preview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        // Modal close handlers
+        document.querySelector('.close').addEventListener('click', function() {
+            document.getElementById('api-modal').style.display = 'none';
+        });
+        
+        document.getElementById('modal-close').addEventListener('click', function() {
+            document.getElementById('api-modal').style.display = 'none';
+        });
+        
+        // Download button
+        document.getElementById('download-btn').addEventListener('click', function() {
+            alert('Fungsi download akan mengunduh gambar hasil generasi. Di implementasi nyata, ini akan mengunduh gambar yang dihasilkan API.');
+        });
+        
+        // New request
+        document.getElementById('new-request').addEventListener('click', function() {
+            document.getElementById('generation-result').style.display = 'none';
+            document.getElementById('prompt').value = '';
+            document.getElementById('image-upload').value = '';
+            document.querySelector('.image-preview').innerHTML = '<div class="image-placeholder">Pratinjau gambar akan muncul di sini</div>';
+            document.getElementById('controlnet-toggle').checked = false;
+            document.getElementById('faceswap-toggle').checked = false;
+            document.getElementById('enhanced-result').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
