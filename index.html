@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompting Image AI App</title>
+    <style>
+        /* CSS dasar untuk styling */
+        body { font-family: sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        input[type="text"], textarea { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .toggle-switch { display: flex; align-items: center; margin-bottom: 10px; }
+        .toggle-switch input[type="checkbox"] { margin-right: 10px; }
+        .image-preview { max-width: 100%; height: auto; margin-top: 10px; border: 1px solid #eee; }
+        #results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Image AI Prompting App</h1>
+
+        <label for="apiKey">API Key:</label>
+        <input type="text" id="apiKey" placeholder="Masukkan API Key Anda">
+
+        <label for="imageUpload">Image to Image (Opsional):</label>
+        <input type="file" id="imageUpload" accept="image/*">
+        <img id="imagePreview" class="image-preview" src="#" alt="Image Preview" style="display:none;">
+
+        <div class="toggle-switch">
+            <input type="checkbox" id="controlNetToggle">
+            <label for="controlNetToggle">Gunakan ControlNet IP-Adapter / Faceswap</label>
+        </div>
+
+        <label for="userPrompt">Prompt atau Ide Anda:</label>
+        <textarea id="userPrompt" rows="5" placeholder="Tulis prompt Anda di sini..."></textarea>
+
+        <button id="submitPrompt">Enhance Prompt</button>
+
+        <div id="enhancedPromptSection" style="display:none;">
+            <h2>Prompt yang Ditingkatkan:</h2>
+            <p id="displayEnhancedPrompt"></p>
+            <button id="submitOriginal">Gunakan Prompt Asli</button>
+            <button id="submitEnhanced">Gunakan Prompt yang Ditingkatkan</button>
+        </div>
+
+        <div id="results">
+            <h2>Hasil Generasi Gambar:</h2>
+            <img id="generatedImage" class="image-preview" src="#" alt="Generated Image" style="display:none;">
+        </div>
+    </div>
+
+    <script>
+        // JavaScript Logic
+        const apiKeyInput = document.getElementById('apiKey');
+        const imageUploadInput = document.getElementById('imageUpload');
+        const imagePreview = document.getElementById('imagePreview');
+        const controlNetToggle = document.getElementById('controlNetToggle');
+        const userPromptInput = document.getElementById('userPrompt');
+        const submitPromptButton = document.getElementById('submitPrompt');
+        const enhancedPromptSection = document.getElementById('enhancedPromptSection');
+        const displayEnhancedPrompt = document.getElementById('displayEnhancedPrompt');
+        const submitOriginalButton = document.getElementById('submitOriginal');
+        const submitEnhancedButton = document.getElementById('submitEnhanced');
+        const generatedImage = document.getElementById('generatedImage');
+
+        let originalPrompt = '';
+        let enhancedPrompt = '';
+        let uploadedImageBase64 = null;
+
+        // 1. Input API Key User: (Sudah ada di HTML)
+
+        // 2. Input Image to Image:
+        imageUploadInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    uploadedImageBase64 = e.target.result.split(',')[1]; // Get base64 data
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.style.display = 'none';
+                uploadedImageBase64 = null;
+            }
+        });
+
+        // 3. ControlNet IP-Adapter / Faceswap Toggle: (Sudah ada di HTML)
+
+        // 4. Text box untuk prompt atau ide -> tombol submit
+        submitPromptButton.addEventListener('click', async () => {
+            originalPrompt = userPromptInput.value.trim();
+            if (!originalPrompt) {
+                alert('Prompt tidak boleh kosong!');
+                return;
+            }
+
+            // 5. Algoritma untuk enhance prompt user menjadi lebih baik
+            // PENTING: Untuk fungsi enhance prompt ini, Anda perlu memanggil
+            //          API LLM (Large Language Model) seperti GPT-3.5/4,
+            //          atau model lain yang bisa Anda host sendiri.
+            //          Ini memerlukan permintaan ke *back-end* atau API pihak ketiga.
+            // Contoh pseudocode untuk enhance prompt (membutuhkan API):
+            try {
+                // Asumsi Anda memiliki endpoint back-end untuk enhance prompt
+                // const enhanceResponse = await fetch('/api/enhance-prompt', {
+                //     method: 'POST',
+                //     headers: { 'Content-Type': 'application/json' },
+                //     body: JSON.stringify({ prompt: originalPrompt })
+                // });
+                // const data = await enhanceResponse.json();
+                // enhancedPrompt = data.enhancedPrompt; // Atau bisa juga data.suggestions
+                // console.log("Enhanced Prompt (Simulasi):", enhancedPrompt);
+
+                // SIMULASI Enhance Prompt (ganti dengan pemanggilan API sungguhan)
+                // Ini akan menambahkan beberapa kata kunci umum sebagai contoh.
+                const simulatedEnhancedPrompt = `A high-quality, professional, highly detailed, photorealistic image of ${originalPrompt}. Trending on Artstation.`;
+                enhancedPrompt = simulatedEnhancedPrompt;
+
+
+                displayEnhancedPrompt.textContent = enhancedPrompt;
+                enhancedPromptSection.style.display = 'block';
+            } catch (error) {
+                console.error('Error enhancing prompt:', error);
+                alert('Gagal meningkatkan prompt. Silakan coba lagi.');
+                // Jika gagal enhance, langsung tawarkan opsi untuk submit original
+                displayEnhancedPrompt.textContent = "Gagal meningkatkan prompt. Silakan gunakan prompt asli.";
+                enhancedPromptSection.style.display = 'block';
+            }
+        });
+
+        // 6. Menampilkan hasil enhance, lalu muncul 2 tombol berbeda (submit original or submit enhance)
+        // (Sudah diatur di dalam event listener submitPromptButton)
+
+        submitOriginalButton.addEventListener('click', () => {
+            submitImageGeneration(originalPrompt);
+        });
+
+        submitEnhancedButton.addEventListener('click', () => {
+            submitImageGeneration(enhancedPrompt);
+        });
+
+        // 7. Kirim sesuai tombol submit yang dipilih, perhatikan toggle controlnet atau faceswap jika on maka gunakan fitur ini.
+        async function submitImageGeneration(promptToUse) {
+            const apiKey = apiKeyInput.value.trim();
+            if (!apiKey) {
+                alert('API Key tidak boleh kosong!');
+                return;
+            }
+
+            const useControlNet = controlNetToggle.checked;
+
+            console.log('Mengirim permintaan generasi gambar dengan prompt:', promptToUse);
+            console.log('Gunakan ControlNet/Faceswap:', useControlNet);
+            console.log('Gambar diunggah:', uploadedImageBase64 ? 'Ya' : 'Tidak');
+
+            // PENTING: Di sinilah Anda akan memanggil API Google Imagen (Vertex AI Gambar)
+            // atau API penyedia layanan lain (DALL-E, Stable Diffusion API).
+            // Karena batasan keamanan, ini idealnya harus melalui *back-end*.
+            // Berikut adalah contoh pseudocode untuk pemanggilan API:
+
+            try {
+                // Contoh dengan asumsi Anda memiliki endpoint back-end:
+                // const generationPayload = {
+                //     apiKey: apiKey, // Jika API key harus dikirim dari front-end (tidak disarankan)
+                //     prompt: promptToUse,
+                //     useControlNet: useControlNet,
+                //     imageToImage: uploadedImageBase64 // Jika ada gambar
+                //     // Tambahkan parameter lain sesuai API yang Anda gunakan
+                // };
+
+                // const response = await fetch('/api/generate-image', {
+                //     method: 'POST',
+                //     headers: { 'Content-Type': 'application/json' },
+                //     body: JSON.stringify(generationPayload)
+                // });
+
+                // const result = await response.json();
+
+                // if (result.success) {
+                //     generatedImage.src = result.imageUrl; // URL gambar hasil
+                //     generatedImage.style.display = 'block';
+                // } else {
+                //     alert('Gagal menghasilkan gambar: ' + result.message);
+                // }
+
+                // SIMULASI GENERASI GAMBAR (Ganti dengan pemanggilan API sungguhan)
+                alert('Permintaan generasi gambar dikirim! Periksa konsol untuk detail.');
+                // Ganti dengan URL gambar hasil sungguhan
+                generatedImage.src = 'https://via.placeholder.com/400x300?text=Gambar+Hasil+AI';
+                generatedImage.style.display = 'block';
+                enhancedPromptSection.style.display = 'none'; // Sembunyikan bagian enhance setelah submit
+            } catch (error) {
+                console.error('Error generating image:', error);
+                alert('Terjadi kesalahan saat menghasilkan gambar. Coba lagi.');
+            }
+        }
+    </script>
+</body>
+</html>
